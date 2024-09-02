@@ -28,8 +28,9 @@ console.log = function (...args) {
 
 
 class Snake {
-    constructor(player) {
+    constructor(player, color) {
         this.player = player
+        this.color = color
 
         this.radius = 18
         this.parts  = []
@@ -58,7 +59,8 @@ class Snake {
             radius: this.radius,
             parts: this.parts,
             player: this.player,
-            direction: this.direction
+            direction: this.direction,
+            color: this.color
         }
     }
 
@@ -95,7 +97,7 @@ class Snake {
     }
 
     grow() {
-        if (this.foodCount % 5 === 0) {
+        if (this.foodCount % 3 === 0) {
             let a = this.parts[this.parts.length - 1].x;
             let b = this.parts[this.parts.length - 1].y;
             this.parts.push({x: a, y: b})
@@ -134,8 +136,8 @@ class GameMaster {
         const split = credentials.split('|')
         const url1 = split[0]
         const key1 = split[1]
-        const url2 = split[0]
-        const key2 = split[1]
+        const url2 = split[2]
+        const key2 = split[3]
         this.sb = supabase.createClient(url1, key1);
         this.sb2 = supabase.createClient(url2, key2);
 
@@ -170,7 +172,7 @@ class GameMaster {
 
     onPlayerSpawned(payload) {
         const player = payload.player
-        const newSnake = new Snake()
+        const newSnake = new Snake(player, payload.color)
         newSnake.spawn(Math.min(Math.max(mapWidth / 4, Math.random() * mapWidth), 3 * mapWidth / 4), Math.min(Math.max(mapHeight / 4, Math.random() * mapHeight), 3 * mapHeight / 4))
         this.snakes[player] = newSnake
         console.log(`${player} spawned.`)

@@ -69,6 +69,19 @@ export class Camera {
     }
 }
 
+// Game Master Button
+document.getElementById('switchToGameMaster').onclick = () => {
+    const iframe = document.createElement('iframe')
+    iframe.src = 'game_master.html'
+    iframe.style.position = 'absolute'
+    iframe.style.top = '50%'
+    iframe.style.left = '50%'
+    iframe.style.height = '500px'
+    iframe.style.transform = 'translate(-50%, -50%)'
+    document.body.removeChild(document.getElementById('joinContainer'))
+    document.body.removeChild(document.getElementById('spawnContainer'))
+    document.body.appendChild(iframe)
+}
 
 // Canvas setup
 const canvas = document.getElementById('canvas');
@@ -99,12 +112,6 @@ canvas.addEventListener('mousemove', (e) => {
     mouse.direction = Math.atan2(mouse.y - canvasCenterY, mouse.x - canvasCenterX);
 });
 
-// Switch To Game Master Button
-document.getElementById('switchToGameMaster').onclick = () => {
-    const iframe = document.createElement('iframe')
-    iframe.src = 'game_master.html'
-    document.body.insertAdjacentElement('afterbegin', iframe)
-}
 
 // Camera
 const camera = new Camera(canvas)
@@ -112,7 +119,7 @@ const camera = new Camera(canvas)
 
 class Client {
     constructor() {
-        this.ticksPerSecond = 15
+        this.ticksPerSecond = 25
         this.gameInterval = null;
 
         this.sb = null;
@@ -129,12 +136,12 @@ class Client {
 
     join() {
         // Get Credentials
-        const credentials = prompt('Enter Url|Key:')
+        const credentials = document.getElementById('credentialsInput').value
         const split = credentials.split('|')
         const url1 = split[0]
         const key1 = split[1]
-        const url2 = split[0]
-        const key2 = split[1]
+        const url2 = split[2]
+        const key2 = split[3]
         this.sb = supabase.createClient(url1, key1);
         this.sb2 = supabase.createClient(url2, key2);
 
@@ -152,10 +159,13 @@ class Client {
         this.dataChannel.on('broadcast', {event: 'update-game'}, (b) => {this.onUpdateGame(b.payload)})
 
         // Set player name
-        this.player = prompt('Enter Player Name:')
+        this.player = document.getElementById('playerNameInput').value
         if (this.player === '') {
             throw new Error('Player cannot have an empty name.')
         }
+        let joinContainer = document.getElementById('joinContainer');
+        document.body.removeChild(joinContainer)
+
         document.getElementById('spawnButton').textContent = `Spawn: ${this.player}`
 
         this.connectChannel.send({
@@ -163,6 +173,10 @@ class Client {
             event: 'player-joined',
             payload: {player: this.player}
         })
+
+        window.addEventListener('beforeunload', () => {this.leave()})
+        document.getElementById('spawnButton').onclick = () => { this.spawnInSnake(); }
+        this.gameInterval = setInterval(() => { client.tick() }, 1000 / this.ticksPerSecond)
     }
 
     leave() {
@@ -179,7 +193,7 @@ class Client {
         this.stateChannel.send({
             type: 'broadcast',
             event: 'player-spawned',
-            payload: {player: this.player}
+            payload: {player: this.player, color: document.getElementById('spawnButton').style.color}
         })
         console.log('Player spawned.')
     }
@@ -188,8 +202,16 @@ class Client {
         if (this.playing) {
             this.updatePlayerState()
             document.getElementById('spawnButton').hidden = true
+            document.getElementById('colorBar').hidden = true
+            for (let i = 0; i < document.getElementById('colorBar').children.length; i++) {
+                document.getElementById('colorBar').children[i].hidden = true
+            }
         } else {
             document.getElementById('spawnButton').hidden = undefined
+            document.getElementById('colorBar').hidden = undefined
+            for (let i = 0; i < document.getElementById('colorBar').children.length; i++) {
+                document.getElementById('colorBar').children[i].hidden = undefined
+            }
         }
     }
 
@@ -259,9 +281,9 @@ class Client {
 
         // Snakes
         for (let targetPlayer in this.snakes) {
-            camera.cameraCtx_setFillStyle('#ac4cff');
-            camera.cameraCtx_setStrokeStyle('black')
             const snake = this.snakes[targetPlayer]
+            camera.cameraCtx_setFillStyle(snake.color);
+            camera.cameraCtx_setStrokeStyle('black')
 
             // Parts
             for (let i = snake.parts.length - 1; i > -1; i--) {
@@ -294,21 +316,26 @@ class Client {
             camera.cameraCtx_fillText(targetPlayer, head.x, head.y - snake.radius * 1.3)
         }
     }
-
-    startGame() {
-        try {
-            this.join()
-            window.addEventListener('beforeunload', () => {this.leave()})
-            document.getElementById('spawnButton').onclick = () => {this.spawnInSnake()}
-            this.gameInterval = setInterval(() => {
-                client.tick()
-            }, 1000 / this.ticksPerSecond)
-        } catch (e) {
-            alert(e.toString() + '\n\nReload the page to try again.')
-            document.getElementById('spawnButton').hidden = true
-        }
-    }
 }
 
 const client = new Client()
-client.startGame()
+document.getElementById('joinButton').onclick = () => { client.join() }
+
+// Color bar
+const colors = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'white'];
+const colorBar = document.getElementById('colorBar');
+colorBar.style.display = 'flex';
+colorBar.style.flexDirection = 'row'
+colors.forEach(color => {
+    const circle = document.createElement('div');
+    circle.style.backgroundColor = color;
+    circle.style.width = "20px"
+    circle.style.height = "20px"
+    circle.style.borderRadius = '10px'
+    circle.style.marginRight = "10px"
+    circle.style.cursor = "pointer"
+    circle.addEventListener('click', () => {
+        document.getElementById('spawnButton').style.color = color
+    });
+    colorBar.appendChild(circle);
+});
