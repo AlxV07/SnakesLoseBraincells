@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnakesLoseBraincells</title>
+</head>
+<body style="margin: 0; padding: 0; overflow: hidden;">
+
+<button style="
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        padding: 15px 30px;
+        font-size: 18px; color: white;
+        background: linear-gradient(135deg, #c0c0c0, #c0c0c0);
+        border: none; border-radius: 10px;
+        cursor: pointer;"
+        id="spawnButton">Spawn</button>
+
+<label style="
+       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+       padding: 15px 30px;
+       font-size: 18px; color: white;
+       background: linear-gradient(135deg, #c0c0c0, #c0c0c0);
+       border: none; border-radius: 10px; text-align: center"
+       id="errorDisplay">There was an error. Reload the page to try again.</label>
+
+<canvas id="canvas" style="display: block; background-color: #333;"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script type="module" src="script.js"></script>
+
+</body>
+</html>
