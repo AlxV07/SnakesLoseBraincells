@@ -5,6 +5,15 @@ const mapHeight = 3000
 
 function distance(a, b) {return Math.hypot(b.x - a.x, b.y - a.y)}
 
+function convertToPositiveRadian(radian) {
+    const twoPi = 2 * Math.PI;
+    let positiveRadian = radian % twoPi;
+    if (positiveRadian < 0) {
+        positiveRadian += twoPi;
+    }
+    return positiveRadian;
+}
+
 
 const originalConsoleLog = console.log;
 console.log = function (...args) {
@@ -24,7 +33,7 @@ class Snake {
     constructor(player) {
         this.player = player
 
-        this.radius = 15
+        this.radius = 12
         this.parts  = []
         for (let i = 0; i < 5; i++) { this.parts.push({x: 0, y: 0}); }
         this.head = this.parts[0]
@@ -32,6 +41,13 @@ class Snake {
         this.speed = 10
         this.direction = 0
         this.mouseDown = false
+    }
+
+    spawn(x, y) {
+        for (let i = 0; i < this.parts.length; i++) {
+            this.parts[i].x = x
+            this.parts[i].y = y
+        }
     }
 
     dataFormat() {
@@ -45,12 +61,12 @@ class Snake {
 
     updateSpeed(shouldShrink) {
         if (this.mouseDown && this.parts.length > 5) {
-            this.speed = 13
+            this.speed = 12
             if (shouldShrink) {
                 this.shrink()
             }
         } else {
-            this.speed = 5
+            this.speed = 6
         }
     }
 
@@ -58,20 +74,19 @@ class Snake {
         this.head.x += Math.cos(this.direction) * this.speed;
         this.head.y += Math.sin(this.direction) * this.speed;
 
-        // TODO: fix wrong turning
+        for (let i = this.parts.length - 1; i > 0; i--) {
+            const curPart = this.parts[i]
+            const nxtPart = this.parts[i - 1]
 
-        for (let i = 1; i < this.parts.length; i++) {
-            const prevSegment = this.parts[i - 1];
-            const segment = this.parts[i];
+            const dx = nxtPart.x - curPart.x
+            const dy = nxtPart.y - curPart.y
 
-            const dx = prevSegment.x - segment.x;
-            const dy = prevSegment.y - segment.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance > this.radius) {
-                const angle = Math.atan2(dy, dx);
-                segment.x += Math.cos(angle) * (distance - this.radius);
-                segment.y += Math.sin(angle) * (distance - this.radius);
+            if (this.speed === 12) {
+                curPart.x += dx
+                curPart.y += dy
+            } else {
+                curPart.x += dx / 2
+                curPart.y += dy / 2
             }
         }
     }
@@ -93,7 +108,7 @@ class Snake {
 class GameMaster {
     constructor() {
         this.tickCount = 0
-        this.ticksPerSecond = 40
+        this.ticksPerSecond = 37
         this.gameInterval = null;
 
         this.sb = null;
@@ -141,20 +156,37 @@ class GameMaster {
     onPlayerSpawned(payload) {
         const player = payload.player
         const newSnake = new Snake()
-        newSnake.head.x = Math.min(Math.max(mapWidth / 4, Math.random() * mapWidth), 3 * mapWidth / 4)
-        newSnake.head.y = Math.min(Math.max(mapHeight / 4, Math.random() * mapHeight), 3 * mapHeight / 4)
+        newSnake.spawn(Math.min(Math.max(mapWidth / 4, Math.random() * mapWidth), 3 * mapWidth / 4), Math.min(Math.max(mapHeight / 4, Math.random() * mapHeight), 3 * mapHeight / 4))
         this.snakes[player] = newSnake
         console.log(`${player} spawned.`)
     }
 
     onPlayerStateUpdated(payload) {
         const player = payload.player
-        const direction = payload.direction
-        const mouseDown = payload.mouseDown
 
         if (this.snakes[player] !== null && this.snakes[player] !== undefined) {
-            this.snakes[player].direction = direction
-            this.snakes[player].mouseDown = mouseDown
+            this.snakes[player].mouseDown = payload.mouseDown
+
+            let tarDir = convertToPositiveRadian(payload.direction)
+            let curDir = convertToPositiveRadian(this.snakes[player].direction)
+
+            let d_dir;
+            let a = tarDir - curDir;
+            let b = (tarDir + 2 * Math.PI) - curDir;
+            let c = tarDir - (2 * Math.PI + curDir);
+            if (Math.abs(a) < Math.abs(b) && Math.abs(a) < Math.abs(c)) {
+                d_dir = a
+            } else if (Math.abs(b) < Math.abs(a) && Math.abs(b) < Math.abs(c)) {
+                d_dir = b
+            } else if (Math.abs(c) < Math.abs(a) && Math.abs(c) < Math.abs(b)) {
+                d_dir = c
+            }
+
+            if (Math.abs(d_dir) < 0.2)  {
+                this.snakes[player].direction = tarDir
+            } else {
+                this.snakes[player].direction += d_dir / 4
+            }
         }
     }
 
@@ -164,7 +196,7 @@ class GameMaster {
         }, 1000 / this.ticksPerSecond)
     }
 
-    updateGame() {  // Updates 50 times per second
+    updateGame() {
         // Clear Deaths
         this.deaths = []
 
