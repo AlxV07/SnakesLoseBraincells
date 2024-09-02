@@ -1,5 +1,5 @@
-const mapWidth = 3000
-const mapHeight = 3000
+const mapWidth = 5000
+const mapHeight = 5000
 
 function distance(a, b) {return Math.hypot(b.x - a.x, b.y - a.y)}
 
@@ -36,9 +36,14 @@ class Snake {
         for (let i = 0; i < 5; i++) { this.parts.push({x: 0, y: 0}); }
         this.head = this.parts[0]
 
-        this.speed = 12
+        this.speed = 0
+        this.normSpeed = 10
+        this.sprintSpeed = 20
+
         this.direction = 0
         this.mouseDown = false
+
+        this.foodCount = 0
     }
 
     spawn(x, y) {
@@ -58,13 +63,13 @@ class Snake {
     }
 
     updateSpeed(shouldShrink) {
-        if (this.mouseDown && this.parts.length > 5) {
-            this.speed = 24
+        if (this.mouseDown && this.foodCount > 0) {
+            this.speed = this.sprintSpeed
             if (shouldShrink) {
                 this.shrink()
             }
         } else {
-            this.speed = 12
+            this.speed = this.normSpeed
         }
     }
 
@@ -79,7 +84,7 @@ class Snake {
             const dx = nxtPart.x - curPart.x
             const dy = nxtPart.y - curPart.y
 
-            if (this.speed === 24) {
+            if (this.speed === this.sprintSpeed) {
                 curPart.x += dx
                 curPart.y += dy
             } else {
@@ -90,13 +95,17 @@ class Snake {
     }
 
     grow() {
-        let a = this.parts[this.parts.length - 1].x;
-        let b = this.parts[this.parts.length - 1].y;
-        this.parts.push({x: a, y: b})
-        this.radius += 0.2
+        if (this.foodCount % 5 === 0) {
+            let a = this.parts[this.parts.length - 1].x;
+            let b = this.parts[this.parts.length - 1].y;
+            this.parts.push({x: a, y: b})
+            this.radius += 0.2
+        }
+        this.foodCount += 1
     }
 
     shrink() {
+        this.foodCount -= 1
         this.parts.pop()
         this.radius -= 0.2
     }
@@ -106,7 +115,7 @@ class Snake {
 class GameMaster {
     constructor() {
         this.tickCount = 0
-        this.ticksPerSecond = 37
+        this.ticksPerSecond = 60
         this.gameInterval = null;
 
         this.sb = null;
@@ -123,14 +132,17 @@ class GameMaster {
         // Get Credentials
         const credentials = prompt('Enter Url|Key:')
         const split = credentials.split('|')
-        const url = split[0]
-        const key = split[1]
-        this.sb = supabase.createClient(url, key);
+        const url1 = split[0]
+        const key1 = split[1]
+        const url2 = split[0]
+        const key2 = split[1]
+        this.sb = supabase.createClient(url1, key1);
+        this.sb2 = supabase.createClient(url2, key2);
 
         // Define channels
         this.connectChannel = this.sb.channel('connect')
-        this.dataChannel = this.sb.channel('data')
-        this.stateChannel = this.sb.channel('spawn')
+        this.dataChannel = this.sb2.channel('data')
+        this.stateChannel = this.sb.channel('state')
 
         // Subscribe to channels
         this.connectChannel.subscribe((status) => { if (status === 'SUBSCRIBED') { console.log('Game Master subscribed to connectChannel.') } })
@@ -188,7 +200,7 @@ class GameMaster {
             if (Math.abs(d_dir) < 0.2)  {
                 this.snakes[player].direction = tarDir
             } else {
-                this.snakes[player].direction += d_dir / 3
+                this.snakes[player].direction += d_dir / 2
             }
         }
     }

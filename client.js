@@ -1,5 +1,5 @@
-const mapWidth = 3000
-const mapHeight = 3000
+const mapWidth = 5000
+const mapHeight = 5000
 
 
 export class Camera {
@@ -102,7 +102,7 @@ canvas.addEventListener('mousemove', (e) => {
 // Switch To Game Master Button
 document.getElementById('switchToGameMaster').onclick = () => {
     const iframe = document.createElement('iframe')
-    iframe.src = 'user_game_master.html'
+    iframe.src = 'game_master.html'
     document.body.insertAdjacentElement('afterbegin', iframe)
 }
 
@@ -112,7 +112,7 @@ const camera = new Camera(canvas)
 
 class Client {
     constructor() {
-        this.ticksPerSecond = 17
+        this.ticksPerSecond = 20
         this.gameInterval = null;
 
         this.sb = null;
@@ -131,14 +131,17 @@ class Client {
         // Get Credentials
         const credentials = prompt('Enter Url|Key:')
         const split = credentials.split('|')
-        const url = split[0]
-        const key = split[1]
-        this.sb = supabase.createClient(url, key);
+        const url1 = split[0]
+        const key1 = split[1]
+        const url2 = split[0]
+        const key2 = split[1]
+        this.sb = supabase.createClient(url1, key1);
+        this.sb2 = supabase.createClient(url2, key2);
 
         // Define channels
         this.connectChannel = this.sb.channel('connect')
-        this.dataChannel = this.sb.channel('data')
-        this.stateChannel = this.sb.channel('spawn')
+        this.dataChannel = this.sb2.channel('data')
+        this.stateChannel = this.sb.channel('state')
 
         // Subscribe to channels
         this.connectChannel.subscribe((status) => { if (status === 'SUBSCRIBED') { console.log('Client subscribed to connectChannel.') } })
@@ -223,20 +226,28 @@ class Client {
         camera.cameraCtx_setFillStyle('#cccccc')
         camera.ctx.fillRect(0, 0, mapWidth, mapHeight);
 
-        // Grid
+        // Grid & Border
         camera.cameraCtx_setStrokeStyle('#989898')
         for (let x = 0; x < mapWidth; x += 100) {
+            if (x === 0) { camera.cameraCtx_setStrokeStyle('#8a0000') } else { camera.cameraCtx_setStrokeStyle('#989898') }
             camera.cameraCtx_beginPath()
             camera.cameraCtx_moveTo(x, 0)
             camera.cameraCtx_lineTo(x, mapHeight)
             camera.cameraCtx_stroke()
         }
+        camera.cameraCtx_setStrokeStyle('#8a0000')
+        camera.cameraCtx_beginPath(); camera.cameraCtx_moveTo(mapWidth, 0)
+        camera.cameraCtx_lineTo(mapWidth, mapHeight); camera.cameraCtx_stroke()
         for (let y = 0; y < mapHeight; y += 100) {
+            if (y === 0) { camera.cameraCtx_setStrokeStyle('#8a0000') } else { camera.cameraCtx_setStrokeStyle('#989898') }
             camera.cameraCtx_beginPath()
             camera.cameraCtx_moveTo(0, y)
             camera.cameraCtx_lineTo(mapWidth, y)
             camera.cameraCtx_stroke()
         }
+        camera.cameraCtx_setStrokeStyle('#8a0000')
+        camera.cameraCtx_beginPath(); camera.cameraCtx_moveTo(0, mapHeight)
+        camera.cameraCtx_lineTo(mapWidth, mapHeight); camera.cameraCtx_stroke()
 
         // Food
         camera.cameraCtx_setFillStyle('#30567c');
@@ -264,12 +275,15 @@ class Client {
             const head = snake.parts[0]
 
             // Eyes
+            let s = snake.radius / 2
             camera.cameraCtx_setFillStyle('black')
             camera.cameraCtx_beginPath()
-            camera.cameraCtx_arc(head.x + Math.cos(snake.direction+0.8) * 7, head.y + Math.sin(snake.direction+0.8) * 7, snake.radius / 5, 0, Math.PI * 2)
+            let x1 = snake.direction + 0.8;
+            camera.cameraCtx_arc(head.x + Math.cos(x1) * s, head.y + Math.sin(x1) * s, snake.radius / 5, 0, Math.PI * 2)
             camera.cameraCtx_fill()
             camera.cameraCtx_beginPath()
-            camera.cameraCtx_arc(head.x + Math.cos(snake.direction-0.8) * 7, head.y + Math.sin(snake.direction-0.8) * 7, snake.radius / 5, 0, Math.PI * 2)
+            let x2 = snake.direction-0.8;
+            camera.cameraCtx_arc(head.x + Math.cos(x2) * s, head.y + Math.sin(x2) * s, snake.radius / 5, 0, Math.PI * 2)
             camera.cameraCtx_fill()
 
             // Name
