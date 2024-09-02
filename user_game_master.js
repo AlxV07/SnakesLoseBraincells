@@ -1,5 +1,3 @@
-import {url, key} from "./credentials.js";
-
 const mapWidth = 3000
 const mapHeight = 3000
 
@@ -122,6 +120,11 @@ class GameMaster {
     }
 
     setupSupabase() {
+        // Get Credentials
+        const credentials = prompt('Enter Url|Key:')
+        const split = credentials.split('|')
+        const url = split[0]
+        const key = split[1]
         this.sb = supabase.createClient(url, key);
 
         // Define channels

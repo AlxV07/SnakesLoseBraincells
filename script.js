@@ -99,6 +99,13 @@ canvas.addEventListener('mousemove', (e) => {
     mouse.direction = Math.atan2(mouse.y - canvasCenterY, mouse.x - canvasCenterX);
 });
 
+// Switch To Game Master Button
+document.getElementById('switchToGameMaster').onclick = () => {
+    const iframe = document.createElement('iframe')
+    iframe.src = 'user_game_master.html'
+    document.body.insertAdjacentElement('afterbegin', iframe)
+}
+
 // Camera
 const camera = new Camera(canvas)
 
