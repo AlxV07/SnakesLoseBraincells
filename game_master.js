@@ -37,8 +37,8 @@ class Snake {
         this.head = this.parts[0]
 
         this.speed = 0
-        this.normSpeed = 10
-        this.sprintSpeed = 20
+        this.normSpeed = 8
+        this.sprintSpeed = 16
 
         this.direction = 0
         this.mouseDown = false
@@ -63,7 +63,7 @@ class Snake {
     }
 
     updateSpeed(shouldShrink) {
-        if (this.mouseDown && this.foodCount > 0) {
+        if (this.mouseDown && this.parts.length > 5) {
             this.speed = this.sprintSpeed
             if (shouldShrink) {
                 this.shrink()
@@ -115,7 +115,7 @@ class Snake {
 class GameMaster {
     constructor() {
         this.tickCount = 0
-        this.ticksPerSecond = 60
+        this.ticksPerSecond = 50
         this.gameInterval = null;
 
         this.sb = null;
@@ -234,7 +234,7 @@ class GameMaster {
         this.broadcastData()
 
         // Log Tick Count
-        if (this.tickCount % this.ticksPerSecond === 0) {
+        if (this.tickCount % (this.ticksPerSecond * 5) === 0) {
             console.log('Tick Count:', this.tickCount)
         }
 

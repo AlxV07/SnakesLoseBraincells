@@ -8,6 +8,13 @@
 <body style="margin: 0; padding: 0; overflow: hidden;">
 
 <button style="
+        position: absolute; top: 0; left: 0;
+        font-size: 12px; color: white;
+        border: none; background: none;
+        cursor: pointer;"
+        id="switchToGameMaster">Game Master Mode</button>
+
+<button style="
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         padding: 15px 30px;
         font-size: 18px; color: white;
@@ -16,20 +23,17 @@
         cursor: pointer;"
         id="spawnButton">Spawn</button>
 
-<label style="
-       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-       padding: 15px 30px;
-       font-size: 18px; color: white;
-       background: linear-gradient(135deg, #c0c0c0, #c0c0c0);
-       border: none; border-radius: 10px; text-align: center"
-       id="errorDisplay">Fill out the dialogs.  If they are not shown, reload the page to try again.</label>
-
-<button style="
-        position: absolute; top: 0; left: 0;
-        font-size: 12px; color: white;
-        border: none; background: none;
-        cursor: pointer;"
-        id="switchToGameMaster">Game Master Mode</button>
+<!--<div>-->
+<!--    <textarea id="urlKeyInput">-->
+<!--    </textarea>-->
+<!---->
+<!--    <textarea id="playerNameInput">-->
+<!--    </textarea>-->
+<!---->
+<!--    <button id="joinButton">-->
+<!--        Join-->
+<!--    </button>-->
+<!--</div>-->
 
 <canvas id="canvas" style="display: block; background-color: #333;"></canvas>
 

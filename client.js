@@ -112,7 +112,7 @@ const camera = new Camera(canvas)
 
 class Client {
     constructor() {
-        this.ticksPerSecond = 20
+        this.ticksPerSecond = 15
         this.gameInterval = null;
 
         this.sb = null;
@@ -259,7 +259,7 @@ class Client {
 
         // Snakes
         for (let targetPlayer in this.snakes) {
-            camera.cameraCtx_setFillStyle('#FFF');
+            camera.cameraCtx_setFillStyle('#ac4cff');
             camera.cameraCtx_setStrokeStyle('black')
             const snake = this.snakes[targetPlayer]
 
@@ -300,14 +300,12 @@ class Client {
             this.join()
             window.addEventListener('beforeunload', () => {this.leave()})
             document.getElementById('spawnButton').onclick = () => {this.spawnInSnake()}
-            document.getElementById('errorDisplay').hidden = true
             this.gameInterval = setInterval(() => {
                 client.tick()
             }, 1000 / this.ticksPerSecond)
         } catch (e) {
             alert(e.toString() + '\n\nReload the page to try again.')
             document.getElementById('spawnButton').hidden = true
-            document.getElementById('errorDisplay').textContent = 'Error: ' + e.toString() + ' Reload the page to try again.'
         }
     }
 }
