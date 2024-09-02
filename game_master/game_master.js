@@ -87,17 +87,13 @@ class Snake {
         this.parts.pop()
         this.radius -= 0.2
     }
-
-    die() {
-
-    }
 }
 
 
 class GameMaster {
     constructor() {
         this.tickCount = 0
-        this.ticksPerSecond = 35
+        this.ticksPerSecond = 45
         this.gameInterval = null;
 
         this.sb = null;
@@ -156,8 +152,10 @@ class GameMaster {
         const direction = payload.direction
         const mouseDown = payload.mouseDown
 
-        this.snakes[player].direction = direction
-        this.snakes[player].mouseDown = mouseDown
+        if (this.snakes[player] !== null && this.snakes[player] !== undefined) {
+            this.snakes[player].direction = direction
+            this.snakes[player].mouseDown = mouseDown
+        }
     }
 
     startGame() {
@@ -170,16 +168,16 @@ class GameMaster {
         // Clear Deaths
         this.deaths = []
 
+        // Food
+        if (this.tickCount % this.ticksPerSecond === 0) {
+            this.genNewFood()
+        }
+
         // Snakes
         for (let player in this.snakes) {
             if (this.snakes[player] !== null) {
                 this.updateSnake(player)
             }
-        }
-
-        // Food
-        if (this.tickCount % this.ticksPerSecond === 0) {
-            this.genNewFood()
         }
 
         // Kill dead snakes
@@ -220,7 +218,11 @@ class GameMaster {
     killDeadSnakes() {
         for (let i = 0; i < this.deaths.length; i++) {
             const player = this.deaths[i]
-            this.snakes[player] = null  // TODO: Add snake.die() to drop food
+            for (let j = 0; j < this.snakes[player].parts.length; j++) {
+                const part = this.snakes[player].parts[j]
+                this.food.push({x: part.x, y: part.y, radius: 7, amount: 2})
+            }
+            this.snakes[player] = null
         }
     }
 
@@ -237,10 +239,10 @@ class GameMaster {
         }
     }
 
-    updateSnakeCollisionContact(snake) {
+    updateSnakeCollisionContact(player, snake) {
         let died = false
         for (const targetPlayer in this.snakes) {
-            if (targetPlayer === snake.player) { continue }
+            if (targetPlayer === player) { continue }
 
             const targetSnake = this.snakes[targetPlayer]
             if (targetSnake === null) { continue }
@@ -249,6 +251,7 @@ class GameMaster {
                 const part = targetSnake.parts[i]
                 if (distance(part, snake.head) <= snake.radius + targetSnake.radius) {  // Might be a problem with side-collisions into the head, but will see
                     died = true
+                    console.log(`${player} slid into ${targetPlayer} and died.`)
                     break
                 }
             }
@@ -259,10 +262,11 @@ class GameMaster {
 
         if (!died && snake.head.x - snake.radius < 0 || snake.head.x + snake.radius > mapWidth || snake.head.y - snake.radius < 0 || snake.head.y + snake.radius > mapHeight) {  // Hit border
             died = true
+            console.log(`${player} slid into the border and died.`)
         }
 
         if (died) {
-            this.deaths.push(snake.player)
+            this.deaths.push(player)
         }
     }
 
@@ -279,7 +283,7 @@ class GameMaster {
         this.updateSnakeFoodContact(snake)
 
         // Collision Contact
-        this.updateSnakeCollisionContact(snake)
+        this.updateSnakeCollisionContact(player, snake)
     }
 
     genNewFood() {

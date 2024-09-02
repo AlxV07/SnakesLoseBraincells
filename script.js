@@ -105,7 +105,7 @@ const camera = new Camera(canvas)
 
 class Client {
     constructor() {
-        this.ticksPerSecond =
+        this.ticksPerSecond = 10
         this.gameInterval = null;
 
         this.sb = null;
@@ -179,7 +179,7 @@ class Client {
             this.updatePlayerState()
             document.getElementById('spawnButton').hidden = true
         } else {
-            document.getElementById('spawnButton').hidden = false
+            document.getElementById('spawnButton').hidden = undefined
         }
     }
 
@@ -192,7 +192,7 @@ class Client {
     }
 
     onUpdateGame(payload) {
-        const deaths = payload.snakes
+        const deaths = payload.deaths
         for (let i = 0; i < deaths.length; i++) {
             const deadPlayer = deaths[i]
             if (deadPlayer === this.player) {
