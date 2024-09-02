@@ -105,7 +105,7 @@ const camera = new Camera(canvas)
 
 class Client {
     constructor() {
-        this.ticksPerSecond = 10
+        this.ticksPerSecond = 7
         this.gameInterval = null;
 
         this.sb = null;

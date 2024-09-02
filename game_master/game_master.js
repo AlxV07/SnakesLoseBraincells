@@ -93,7 +93,7 @@ class Snake {
 class GameMaster {
     constructor() {
         this.tickCount = 0
-        this.ticksPerSecond = 45
+        this.ticksPerSecond = 40
         this.gameInterval = null;
 
         this.sb = null;
