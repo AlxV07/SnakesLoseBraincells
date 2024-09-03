@@ -145,6 +145,10 @@ class Client {
         this.sb = supabase.createClient(url1, key1);
         this.sb2 = supabase.createClient(url2, key2);
 
+        // Set player name
+        this.player = document.getElementById('playerNameInput').value
+        if (this.player === '') { throw new Error('Player cannot have an empty name.') }
+
         // Define channels
         this.connectChannel = this.sb.channel('connect')
         this.dataChannel = this.sb2.channel('data')
@@ -158,25 +162,18 @@ class Client {
         // Add listener
         this.dataChannel.on('broadcast', {event: 'update-game'}, (b) => {this.onUpdateGame(b.payload)})
 
-        // Set player name
-        this.player = document.getElementById('playerNameInput').value
-        if (this.player === '') {
-            throw new Error('Player cannot have an empty name.')
-        }
-        let joinContainer = document.getElementById('joinContainer');
-        document.body.removeChild(joinContainer)
+        document.body.removeChild(document.getElementById('joinContainer'))
 
         document.getElementById('spawnButton').textContent = `Spawn: ${this.player}`
+        window.addEventListener('beforeunload', () => {this.leave()})
+        document.getElementById('spawnButton').onclick = () => { this.spawnInSnake(); }
+        this.gameInterval = setInterval(() => { client.tick() }, 1000 / this.ticksPerSecond)
 
         this.connectChannel.send({
             type: 'broadcast',
             event: 'player-joined',
             payload: {player: this.player}
         })
-
-        window.addEventListener('beforeunload', () => {this.leave()})
-        document.getElementById('spawnButton').onclick = () => { this.spawnInSnake(); }
-        this.gameInterval = setInterval(() => { client.tick() }, 1000 / this.ticksPerSecond)
     }
 
     leave() {
@@ -272,10 +269,10 @@ class Client {
         camera.cameraCtx_lineTo(mapWidth, mapHeight); camera.cameraCtx_stroke()
 
         // Food
-        camera.cameraCtx_setFillStyle('#30567c');
         this.food.forEach((f) => {
             camera.cameraCtx_beginPath()
             camera.cameraCtx_arc(f.x, f.y, f.radius, 0, Math.PI * 2)
+            camera.cameraCtx_setFillStyle(f.color)
             camera.cameraCtx_fill()
         })
 

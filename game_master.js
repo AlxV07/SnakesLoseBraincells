@@ -269,7 +269,7 @@ class GameMaster {
             const player = this.deaths[i]
             for (let j = 0; j < this.snakes[player].parts.length; j++) {
                 const part = this.snakes[player].parts[j]
-                this.food.push({x: part.x, y: part.y, radius: 11, amount: 2})
+                this.food.push({x: part.x, y: part.y, radius: 11, amount: 2, color: this.snakes[player].color})
             }
             this.snakes[player] = null
         }
@@ -277,7 +277,7 @@ class GameMaster {
 
     updateSnakeFoodContact(snake) {
         for (let i = 0; i < this.food.length;) {
-            if (distance(this.food[i], snake.head) <= snake.radius + this.food[i].radius) {
+            if (distance(this.food[i], snake.head) <= snake.radius + this.food[i].radius * 1.5) {
                 this.food.splice(i, 1)
                 for (let j = 0; j < this.food[i].amount; j++) {
                     snake.grow()
@@ -338,7 +338,14 @@ class GameMaster {
     genNewFood() {
         let x = Math.random() * mapWidth
         let y = Math.random() * mapHeight
-        this.food.push({x: x, y: y, radius: 7, amount: 1})
+        let color = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'white'][Math.round(Math.random() * 7)]
+        if (this.food.length > 1000) {
+            for (let i = 0; i < 10; i++) {
+                this.food.shift()
+            }
+        } else {
+            this.food.push({x: x, y: y, radius: 7, amount: 1, color: color})
+        }
     }
 }
 
